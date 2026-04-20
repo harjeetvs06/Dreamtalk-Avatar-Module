@@ -72,3 +72,5 @@ desktop.ini
 *.swp
 *.swo
 .trae/
+node_modules/
+.env
