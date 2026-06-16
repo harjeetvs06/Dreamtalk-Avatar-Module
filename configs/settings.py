@@ -1,19 +1,18 @@
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
-    DID_API_KEY: str = ""
-    DID_API_URL: str = "https://api.d-id.com"
-    
-    ELEVENLABS_API_KEY: str = ""
-    ELEVENLABS_VOICE_ID: str = "21m00Tcm4TlvDq8ikWAM"
-    
+    HOST: str = "127.0.0.1"
     PORT: int = 8000
-    HOST: str = "0.0.0.0"
-    
+
     ASSETS_AVATARS_DIR: str = "assets/avatars"
     ASSETS_OUTPUTS_DIR: str = "assets/outputs"
 
+    DID_API_KEY: str = ""
+    DID_API_URL: str = "https://api.d-id.com"
+    PUBLIC_BASE_URL: str = ""
+
     class Config:
         env_file = ".env"
+        extra = "ignore"
 
 settings = Settings()

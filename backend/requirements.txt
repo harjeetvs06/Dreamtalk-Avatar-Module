@@ -11,8 +11,8 @@ elevenlabs
 torch
 torchvision
 torchaudio
-opencv-python
-numpy
+opencv-python==4.10.0.84
+numpy==1.26.4
 facexlib
 basicsr
 gfpgan

@@ -74,7 +74,7 @@ export default function AvatarPage() {
         }
       }, 2500);
 
-      const response = await fetch("http://localhost:8000/generate-avatar", {
+      const response = await fetch("http://127.0.0.1:8000/generate-avatar", {
         method: "POST",
         body: formData,
       });

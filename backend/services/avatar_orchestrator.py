@@ -1,11 +1,12 @@
 import os
-import asyncio
-from typing import Optional, Dict, Any
+from urllib.parse import quote
+
 from backend.services.image_processing import ImageProcessingService
 from backend.services.face_reconstruction import FaceReconstructionService
 from backend.services.emotion_mapping import EmotionMappingService
 from integrations.did_api import DIDService
 from configs.settings import settings
+
 
 class AvatarOrchestrator:
     def __init__(self):
@@ -13,41 +14,56 @@ class AvatarOrchestrator:
         self.face_service = FaceReconstructionService()
         self.emotion_service = EmotionMappingService()
         self.did_service = DIDService()
-        self.default_avatar_url = "https://create-images-results.d-id.com/Default_Avatars/v2/female_1.png"
 
-    async def run_full_pipeline(self, image_path: str, text: str, emotion: str, intensity: float = 1.0):
-        """
-        Orchestrates the full AI pipeline for avatar generation.
-        """
+    async def run_full_pipeline(
+        self,
+        image_path: str,
+        text: str,
+        emotion: str,
+        intensity: float = 1.0
+    ):
         results = {"status": "processing", "steps": []}
-        
+
         try:
-            # 1. Image Enhancement
+            # 1. Enhance uploaded image
             results["steps"].append("Enhancing Image")
             enhanced_path = await self.image_service.enhance_face(image_path)
-            
-            # 2. 3D Face Reconstruction
+
+            # 2. Optional face reconstruction
             results["steps"].append("Creating 3D Face")
             face_3d = await self.face_service.reconstruct_3d(enhanced_path)
-            
-            # 3. Rendering Video (D-ID or local SadTalker)
+
+            # 3. Convert enhanced image path to public ngrok URL
+            if not settings.PUBLIC_BASE_URL:
+                raise ValueError("PUBLIC_BASE_URL is not configured in .env")
+
+            enhanced_filename = os.path.basename(enhanced_path)
+
+            original_filename = os.path.basename(image_path)
+
+            public_source_url = (
+                f"{settings.PUBLIC_BASE_URL}/avatars/{quote(original_filename)}"
+)
+            print("D-ID SOURCE URL:", public_source_url)
+
+            # 4. Send public image URL + text to D-ID
             results["steps"].append("Rendering Video")
             video_url = await self.did_service.create_talk(
-                source_url=enhanced_path,  # Use enhanced image
+                source_url=public_source_url,
                 text=text,
                 emotion=emotion
             )
-            
-            results.update({
+
+            return {
                 "status": "success",
+                "source_image_url": public_source_url,
                 "video_url": video_url,
                 "emotion_used": emotion,
                 "intensity": intensity,
-                "3d_face_meta": face_3d
-            })
-            
-            return results
-            
+                "3d_face_meta": face_3d,
+                "message": "Talking avatar video generated successfully."
+            }
+
         except Exception as e:
             return {
                 "status": "error",
@@ -56,8 +72,7 @@ class AvatarOrchestrator:
             }
 
     async def get_progress(self, job_id: str):
-        """
-        Retrieves the current progress of a processing job.
-        """
-        # Placeholder for real-time progress tracking
-        return {"job_id": job_id, "progress": "50%"}
+        return {
+            "job_id": job_id,
+            "progress": "50%"
+        }
