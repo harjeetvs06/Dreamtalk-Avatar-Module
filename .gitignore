@@ -74,3 +74,4 @@ desktop.ini
 .trae/
 node_modules/
 .env
+*.pth
